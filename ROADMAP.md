@@ -82,6 +82,13 @@ real API" (no refresh-on-reload flow).
   here). `src/features/payments/components/WalletLinkForm.tsx`, wired
   into `FacilityDashboardPage` — a facility links the Stellar address
   `docforum-core` pays out to.
+- [ ] Patient wallet connection with SEP-10 verification and privacy notice.
+  Tracked as [issue #58](https://github.com/DocForum/docforum-web/issues/58),
+  blocked until `docforum-core` delivers the SEP-10 and verified wallet-link
+  contracts in [#77](https://github.com/DocForum/docforum-core/issues/77) and
+  [#78](https://github.com/DocForum/docforum-core/issues/78). No frontend
+  endpoint or wallet-verification shape is assumed before those dependencies
+  are implemented.
 - [x] Payment/escrow status display — not literally "on orders" (Phase
   4's `Prescription`/`LabOrder` don't exist yet, same reason
   `docforum-core`'s `PaymentIntent.orderId` stays opaque), but a real,
