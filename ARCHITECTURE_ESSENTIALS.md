@@ -280,31 +280,15 @@ assumed and mirrored in `models.ts` under "Phase W6 — Feature flags console".
   - Approaching deadline warnings: prominent alerts when held escrow refund deadline is < 48 hours away and order is unfulfilled (Threat Model T8 compliance).
   - Direct explorer links to Stellar testnet transactions (`https://stellar.expert/explorer/testnet/tx/...`).
 
-### Shared form system (issue #102)
+### Error monitoring (issue #100)
 
-- **Layer:** `react-hook-form` + `zod` schema validation, providing consistent,
-  accessible errors across forms and less hand-rolled state per form.
-- **Primitives:** `src/components/form/FormField.tsx` wraps `TextField` and
-  wires it to react-hook-form via `useController`. Field errors (zod-produced
-  or server-mapped) are associated through `aria-describedby`/`aria-invalid`
-  and rendered by `TextField`'s existing error paragraph. `useFormContext` /
-  `FormProvider` scope each form.
-- **Schema validation:** `src/hooks/useZodForm.ts` wraps `useForm` with a
-  `zodResolver`. Schemas live alongside their forms (login, signup, wallet
-  link, create payment intent) and use descriptive messages matching the
-  previous hand-rolled validators.
-- **Migrated forms:** login (`src/features/auth/components/LoginForm.tsx`),
-  signup (`src/features/auth/components/SignupForm.tsx`), wallet link
-  (`src/features/payments/components/WalletLinkForm.tsx`), and create payment
-  intent (`src/features/payments/components/CreatePaymentIntentForm.tsx`).
-- **Focus to first error:** react-hook-form's `handleSubmit` focuses the
-  first invalid field on a failed submit.
-- **Server error mapping:** `src/utils/form.ts` `mapServerErrors` maps a
-  docforum-core `VALIDATION_FAILED` body onto `field -> message` records,
-  applied via `form.setError(field, { message })`. Assumed server shape
-  (to be reconciled against the real API contract):
-  `{ details: [{ field: string, message: string }] }` or a bare array of
-  `{ field, message }`.
+- **SDK:** `@sentry/react` (browser SDK), initialized in `src/main.tsx:48`.
+- **Default off:** initialization is guarded by `if (import.meta.env.VITE_SENTRY_DSN)`; without a DSN the SDK is never loaded and no events are captured. The Pages preview ships without `VITE_SENTRY_DSN`, so monitoring is off by default there (and in local dev unless explicitly configured).
+- **Session replay:** deliberately never integrated — the Replay integration is not imported or initialized.
+- **Scrubber:** `src/utils/phi-scrubber.ts` runs as Sentry's `beforeSend` and `beforeBreadcrumb`. It is a pure function, unit-tested in `src/utils/phi-scrubber.test.ts` against a sample event containing intake text and other PHI patterns.
+- **What is NOT sent:** request or response bodies, headers, cookies, or query strings; form values; the user's email, IP address, or username; PHI-pattern values anywhere in the event (email addresses, phone numbers, SSNs, bearer tokens); breadcrumb request bodies or URLs containing ids/tokens.
+- **What is sent (scrubbed):** the error message and exception type, the HTTP method, a sanitized URL (host + route shape only; query string dropped, id-like path segments replaced with `[id-redacted]`), and an opaque user id only. Benign extra/contexts/tags pass through with sensitive keys redacted.
+- **CSP:** Sentry is bundled via npm — there is no external `<script>` to whitelist. The only network target is `*.sentry.io`, and only when a DSN is configured; if a CSP is adopted, add `connect-src https://*.sentry.io`.
 
 ## Roadmap / status
 See `ROADMAP.md` in this repo, and Phase 7 in `docforum-core`'s
