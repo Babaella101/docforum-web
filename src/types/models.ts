@@ -120,6 +120,10 @@ export interface WalletLink {
 export type OrderTypeForPayment = 'prescription' | 'lab_order';
 export type PaymentIntentStatus = 'created' | 'escrowed' | 'released' | 'refunded' | 'failed';
 
+// `PatientOrder` (= Prescription | LabOrder) is defined with the orders
+// work (Phase W2, issue #5) — the order detail page (issue #61) reuses
+// that shape as-is.
+
 export interface PaymentIntent {
   id: string;
   orderType: OrderTypeForPayment;
